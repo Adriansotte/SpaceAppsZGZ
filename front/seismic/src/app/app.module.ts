@@ -8,9 +8,12 @@ import { HeaderComponent } from './components/header/header.component';
 import { FileUploadModule } from 'primeng/fileupload';
 import { CardModule } from 'primeng/card';
 import { TabMenuModule } from 'primeng/tabmenu';
+import { ToastModule } from 'primeng/toast';
+import { BadgeModule } from 'primeng/badge';
 import { ChartComponent } from './components/chart/chart.component';
 import { EarthComponent } from './components/earth/earth.component';
 import { ArtificialComponent } from './components/artificial/artificial.component';
+import { MessageService } from 'primeng/api';
 
 @NgModule({
   declarations: [
@@ -26,9 +29,11 @@ import { ArtificialComponent } from './components/artificial/artificial.componen
     AppRoutingModule,
     CardModule,
     FileUploadModule,
-    TabMenuModule
+    TabMenuModule,
+    ToastModule,
+    BadgeModule
   ],
-  providers: [],
+  providers: [MessageService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

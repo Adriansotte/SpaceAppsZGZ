@@ -12,7 +12,7 @@ export class AppComponent {
 
   items: MenuItem[] | undefined;
 
-  constructor(private router: Router) { } // Inyecta el Router
+  constructor(private router: Router) { }
 
   ngOnInit() {
     this.items = [
