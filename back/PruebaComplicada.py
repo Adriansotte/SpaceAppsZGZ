@@ -1,191 +1,135 @@
+import os
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
-import os
-
 from scipy import signal
 from obspy.signal.trigger import classic_sta_lta, trigger_onset
 from matplotlib import cm
+from datetime import timedelta
 
 # Directorio de salida para las imágenes
 output_directory = './Resultados/'
 os.makedirs(output_directory, exist_ok=True)  # Asegúrate de que el directorio exista
 
-# %% Load the catalog data
-cat_directory = './data/lunar/training/catalogs/'
-cat_file = cat_directory + 'apollo12_catalog_GradeA_final.csv'
-cat = pd.read_csv(cat_file)
-cat.head()
 
-# %% Select a detection from the catalog
-for index, row in cat.iterrows():
-    arrival_time = datetime.strptime(row['time_abs(%Y-%m-%dT%H:%M:%S.%f)'], '%Y-%m-%dT%H:%M:%S.%f')
-    print(f"Arrival Time: {arrival_time}")
+def process_and_generate_plots_from_extractor(times_rel, times_abs, data, start_time):
+    """
+    Procesa los datos sísmicos recibidos y genera imágenes de traza sísmica, función característica,
+    espectrograma y detecciones, guardándolos en un directorio especificado.
 
-    # Get the relative arrival time and filename
-    arrival_time_rel = row['time_rel(sec)']
-    test_filename = row.filename
-    print(f"Processing file: {test_filename}")
+    Parameters:
+    times_rel (array): Tiempos relativos extraídos.
+    times_abs (array): Tiempos absolutos extraídos.
+    data (array): Datos de velocidad (m/s).
+    start_time (datetime): Tiempo absoluto de inicio del sismo.
 
-    # Read the corresponding CSV data
-    data_directory = './data/lunar/training/data/S12_GradeA/'
-    csv_file = f'{data_directory}{test_filename}.csv'
-    data_cat = pd.read_csv(csv_file)
+    Returns:
+    str: Directorio donde se guardan las imágenes generadas.
+    """
 
-    # Extract time and velocity data
-    csv_times = np.array(data_cat['time_rel(sec)'].tolist())
-    csv_data = np.array(data_cat['velocity(m/s)'].tolist())
+    csv_file = "output_data"  # Puedes ajustar este nombre según sea necesario
 
-    # Plot the seismic trace and save image
+    # Asegurarse de que arrival_time_rel está dentro de los límites de times_rel
+    arrival_time_rel = times_rel[0]  # O ajustar el valor adecuado para la llegada del sismo
+    if not (min(times_rel) <= arrival_time_rel <= max(times_rel)):
+        print(f"arrival_time_rel ({arrival_time_rel}) fuera del rango de times_rel.")
+        arrival_time_rel = np.median(times_rel)  # Definir a un valor dentro del rango como solución temporal
+
+    # Plot de la traza sísmica relativa y guarda imagen
     fig, ax = plt.subplots(1, 1, figsize=(10, 3))
-    ax.plot(csv_times, csv_data)
-
-    # Customize the plot
-    ax.set_xlim([min(csv_times), max(csv_times)])
+    ax.plot(times_rel, data)
+    ax.set_xlim([min(times_rel), max(times_rel)])
     ax.set_ylabel('Velocity (m/s)')
     ax.set_xlabel('Time (s)')
-    ax.set_title(f'{test_filename}', fontweight='bold')
+    ax.set_title(f'{csv_file}', fontweight='bold')
 
-    # Plot the arrival time
-    arrival_line = ax.axvline(x=arrival_time_rel, c='red', label='Rel. Arrival')
-    ax.legend(handles=[arrival_line])
+    # Dibujar la línea roja en arrival_time_rel si está dentro del rango
+    ax.axvline(x=arrival_time_rel, c='red', label='Rel. Arrival')
+    ax.legend()
 
-    # Save the plot as image
-    plt.savefig(f'{output_directory}{test_filename}_seismic_trace_rel.png')
+    plt.savefig(f'{output_directory}{csv_file}_seismic_trace_rel.png')
 
-
-    # Convert time to absolute and plot
-    csv_times_dt = [datetime.strptime(val, '%Y-%m-%dT%H:%M:%S.%f') for val in
-                    data_cat['time_abs(%Y-%m-%dT%H:%M:%S.%f)'].values]
-    csv_data = np.array(data_cat['velocity(m/s)'].tolist())
-
-    # Plot in absolute time and save image
+    # Plot de la traza en tiempo absoluto y guarda imagen
     fig, ax = plt.subplots(1, 1, figsize=(10, 3))
-    ax.plot(csv_times_dt, csv_data)
-
-    # Customize the plot
-    ax.set_xlim((np.min(csv_times_dt), np.max(csv_times_dt)))
+    ax.plot(times_abs, data)
+    ax.set_xlim([min(times_abs), max(times_abs)])
     ax.set_ylabel('Velocity (m/s)')
     ax.set_xlabel('Time (month-day hour)')
-    ax.set_title(f'{test_filename}', fontweight='bold')
+    ax.set_title(f'{csv_file}', fontweight='bold')
 
-    # Plot the arrival time in absolute terms
-    arrival_line = ax.axvline(x=arrival_time, c='red', label='Abs. Arrival')
-    ax.legend(handles=[arrival_line])
+    if start_time >= min(times_abs) and start_time <= max(times_abs):
+        ax.axvline(x=start_time, c='red', label='Abs. Arrival')
+        ax.legend()
 
-    # Save the plot as image
-    plt.savefig(f'{output_directory}{test_filename}_seismic_trace_abs.png')
+    plt.savefig(f'{output_directory}{csv_file}_seismic_trace_abs.png')
 
+    # Aplicar un filtro de paso de banda (simulado)
+    filtered_data = data  # Línea de filtro dummy, podrías aplicar un filtro real aquí
 
-    # Apply a bandpass filter to highlight certain frequencies (simulated)
-    minfreq = 0.5
-    maxfreq = 1.0
-    filtered_data = csv_data  # Dummy line for filtering
+    # Generar un espectrograma y guardar imagen
+    f, t, sxx = signal.spectrogram(filtered_data, fs=1.0 / (times_rel[1] - times_rel[0]))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
 
-    # Plot the filtered trace and save image
-    fig, ax = plt.subplots(1, 1, figsize=(10, 3))
-    ax.plot(csv_times, filtered_data)
+    # Serie temporal
+    ax1.plot(times_rel, filtered_data)
+    ax1.axvline(x=arrival_time_rel, color='red', label='Detection')
+    ax1.set_xlim([min(times_rel), max(times_rel)])
+    ax1.set_ylabel('Velocity (m/s)')
+    ax1.set_xlabel('Time (s)')
+    ax1.legend()
 
-    # Mark the detection
-    ax.axvline(x=arrival_time_rel, color='red', label='Detection')
-    ax.legend(loc='upper left')
-
-    # Customize the plot
-    ax.set_xlim([min(csv_times), max(csv_times)])
-    ax.set_ylabel('Velocity (m/s)')
-    ax.set_xlabel('Time (s)')
-
-    # Save the plot as image
-    plt.savefig(f'{output_directory}{test_filename}_filtered_trace.png')
-
-
-    # Generate a spectrogram and save image
-    f, t, sxx = signal.spectrogram(filtered_data, fs=1.0 / (csv_times[1] - csv_times[0]))
-
-    fig = plt.figure(figsize=(10, 10))
-
-    # Time series plot
-    ax = plt.subplot(2, 1, 1)
-    ax.plot(csv_times, filtered_data)
-    ax.axvline(x=arrival_time_rel, color='red', label='Detection')
-    ax.legend(loc='upper left')
-    ax.set_xlim([min(csv_times), max(csv_times)])
-    ax.set_ylabel('Velocity (m/s)')
-    ax.set_xlabel('Time (s)')
-
-    # Spectrogram plot
-    ax2 = plt.subplot(2, 1, 2)
+    # Espectrograma
     vals = ax2.pcolormesh(t, f, sxx, cmap=cm.jet, vmax=5e-17)
-    ax2.set_xlim([min(csv_times), max(csv_times)])
+    ax2.set_xlim([min(times_rel), max(times_rel)])
     ax2.set_xlabel('Time (Day Hour:Minute)', fontweight='bold')
     ax2.set_ylabel('Frequency (Hz)', fontweight='bold')
     ax2.axvline(x=arrival_time_rel, c='red')
-    cbar = plt.colorbar(vals, orientation='horizontal')
-    cbar.set_label('Power ((m/s)^2/sqrt(Hz))', fontweight='bold')
+    plt.colorbar(vals, ax=ax2, orientation='horizontal').set_label('Power ((m/s)^2/sqrt(Hz))', fontweight='bold')
 
-    # Save the spectrogram
-    plt.savefig(f'{output_directory}{test_filename}_spectrogram.png')
+    plt.savefig(f'{output_directory}{csv_file}_spectrogram.png')
 
-
-    # Calculate STA/LTA and save characteristic function plot
+    # Calcular STA/LTA y guardar la función característica
     sta_len = 30
     lta_len = 150
-    cft = classic_sta_lta(csv_data, int(sta_len * (1 / (csv_times[1] - csv_times[0]))),
-                          int(lta_len * (1 / (csv_times[1] - csv_times[0]))))
-
-    cft = cft / np.max(cft)  # Normalize the characteristic function
-
+    cft = classic_sta_lta(data, int(sta_len * (1 / (times_rel[1] - times_rel[0]))),
+                          int(lta_len * (1 / (times_rel[1] - times_rel[0]))))
+    cft /= np.max(cft)  # Normaliza la función característica
     fig, ax = plt.subplots(1, 1, figsize=(12, 3))
-    ax.plot(csv_times, cft)
-    ax.set_xlim([min(csv_times), max(csv_times)])
+    ax.plot(times_rel, cft)
+    ax.set_xlim([min(times_rel), max(times_rel)])
     ax.set_ylim([0, 10])
     ax.set_xlabel('Time (s)')
     ax.set_ylabel('Characteristic function')
+    plt.savefig(f'{output_directory}{csv_file}_characteristic_function.png')
 
-    # Save the STA/LTA plot
-    plt.savefig(f'{output_directory}{test_filename}_characteristic_function.png')
-
-
-    # Apply the detection threshold for seismic events
+    # Aplicar umbral de detección
     thr_on = 4
     thr_off = 1.5
     on_off = np.array(trigger_onset(cft, thr_on, thr_off))
 
-    # Check if `on_off` has values, otherwise skip the rest of the loop
     if len(on_off) == 0:
-        print(f"No triggers found for {test_filename}")
-        continue
+        print(f"No triggers found for {csv_file}")
+        return output_directory
 
-    # Plot the triggers on the seismic trace and save image
+    # Plotear las detecciones y guardar la imagen
     fig, ax = plt.subplots(1, 1, figsize=(12, 3))
-    for i in np.arange(0, len(on_off)):
-        triggers = on_off[i]
-        ax.axvline(x=csv_times[triggers[0]], color='red', label=f'Trig. On {i+1}')
-        ax.axvline(x=csv_times[triggers[1]], color='purple', label=f'Trig. Off {i+1}')
-
-    ax.plot(csv_times, csv_data)
-    ax.set_xlim([min(csv_times), max(csv_times)])
+    for i, triggers in enumerate(on_off):
+        ax.axvline(x=times_rel[triggers[0]], color='red', label=f'Trig. On {i + 1}')
+        ax.axvline(x=times_rel[triggers[1]], color='purple', label=f'Trig. Off {i + 1}')
+    ax.plot(times_rel, data)
+    ax.set_xlim([min(times_rel), max(times_rel)])
     ax.legend()
+    plt.savefig(f'{output_directory}{csv_file}_triggers.png')
 
-    # Save the trigger plot
-    plt.savefig(f'{output_directory}{test_filename}_triggers.png')
-
-
-    # Create a detection catalog
+    # Generar catálogo de detecciones y guardarlo en CSV
     detection_times = []
-    fnames = []
+    for i, triggers in enumerate(on_off):
+        on_time = times_rel[triggers[0]] + arrival_time_rel
+        detection_times.append((start_time + timedelta(seconds=on_time)).strftime('%Y-%m-%dT%H:%M:%S.%f'))
 
-    for i in np.arange(0, len(on_off)):
-        triggers = on_off[i]
-        on_time = csv_times[triggers[0]] + arrival_time_rel
-        on_time_str = datetime.strftime(arrival_time + timedelta(seconds=on_time), '%Y-%m-%dT%H:%M:%S.%f')
-        detection_times.append(on_time_str)
-        fnames.append(test_filename)
+    detect_df = pd.DataFrame({'filename': csv_file,
+                              'time_abs(%Y-%m-%dT%H:%M:%S.%f)': detection_times,
+                              'time_rel(sec)': times_rel[on_off[:, 0]]})
+    detect_df.to_csv(f'{output_directory}detection_catalog_{csv_file}.csv', index=False)
 
-    # Compile the results into a DataFrame
-    detect_df = pd.DataFrame(data={'filename': fnames, 'time_abs(%Y-%m-%dT%H:%M:%S.%f)': detection_times,
-                                   'time_rel(sec)': csv_times[triggers[0]]})
-
-    # Save the detection catalog to a CSV file
-    detect_df.to_csv(f'output/detection_catalog_{test_filename}.csv', index=False)
+    return output_directory

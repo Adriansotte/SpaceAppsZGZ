@@ -6,6 +6,7 @@ from obspy import read
 from datetime import datetime, timedelta
 
 
+# Función para extraer datos desde un archivo CSV o MiniSEED
 def extract_data(filename, data_directory):
     """
     Dependiendo de la extensión del archivo, se extraen los datos
@@ -22,21 +23,32 @@ def extract_data(filename, data_directory):
             "Formato de archivo no soportado. Solo se admiten CSV y MiniSEED. Valor actual: " + extension)
 
 
+# Función para extraer datos desde un archivo CSV
 def extract_from_csv(filename, data_directory):
     """
-    Extrae los datos de un archivo CSV y los retorna.
+    Extrae los datos de un archivo CSV y los procesa de manera similar al segundo ejemplo
+    para generar gráficos o análisis posteriores.
     """
-    csv_file = f'{data_directory}{filename}'
+    # Construir la ruta completa al archivo CSV
+    csv_file = os.path.join(data_directory, filename)
+
+    # Leer el archivo CSV
     data_cat = pd.read_csv(csv_file)
 
-    times_rel = np.array(data_cat['time_rel(sec)'].tolist())  # Tiempo relativo
-    times_abs = np.array(data_cat['time_abs(%Y-%m-%dT%H:%M:%S.%f)'].tolist())  # Tiempo absoluto
-    data = np.array(data_cat['velocity(m/s)'].tolist())  # Datos de velocidad
-    start_time = times_abs[0]  # El primer valor del tiempo absoluto es el inicio del registro
+    # Extraer tiempos relativos (columna: 'time_rel(sec)')
+    times_rel = np.array(data_cat['time_rel(sec)'].tolist())
 
-    print(times_rel, times_abs, data, start_time)
+    # Extraer tiempos absolutos (columna: 'time_abs(%Y-%m-%dT%H:%M:%S.%f)')
+    times_abs = [datetime.strptime(val, '%Y-%m-%dT%H:%M:%S.%f') for val in
+                 data_cat['time_abs(%Y-%m-%dT%H:%M:%S.%f)'].values]
+
+    # Extraer datos de velocidad (columna: 'velocity(m/s)')
+    data = np.array(data_cat['velocity(m/s)'].tolist())
+
+    # El primer valor del tiempo absoluto como el inicio del registro
+    start_time = times_abs[0]
+
     return times_rel, times_abs, data, start_time
-
 
 def extract_from_mseed(filename, data_directory):
     """
