@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Terremotos</title>
+    <script src="earthquake_data.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.4.1/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <style>
+        #map {
+            height: 80vh;
+        }
+        #yearInput {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mapa de Terremotos</h1>
+    <p>Introduce un año para filtrar los terremotos:</p>
+    <input type="number" id="yearInput" placeholder="Año" value="2000">
+    <button onclick="filterByYear()">Filtrar</button>
+
+    <div id="map"></div>
+
+    <script>
+        // Crear el mapa inicial
+        var map = L.map('map').setView([0, 0], 2);
+
+        // Añadir la capa base del mapa
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Crear un cluster de marcadores
+        var markers = L.markerClusterGroup();
+
+        // Función para añadir terremotos al mapa
+        function addEarthquakesToMap(data) {
+            markers.clearLayers(); // Limpiamos el cluster
+            data.forEach(function(earthquake) {
+                var year = new Date(earthquake['Date']).getFullYear();
+                var marker = L.marker([earthquake['Latitude'], earthquake['Longitude']])
+                    .bindPopup("Magnitud: " + earthquake['Magnitude'] + "<br>Profundidad: " + earthquake['Depth'] + "<br>Fecha: " + earthquake['Date']);
+                markers.addLayer(marker);
+            });
+            map.addLayer(markers); // Añadimos los marcadores agrupados
+        }
+
+        // Función para filtrar por año
+        function filterByYear() {
+            var inputYear = parseInt(document.getElementById('yearInput').value);
+            var filteredData = earthquakeData.filter(function(earthquake) {
+                var year = new Date(earthquake['Date']).getFullYear();
+                return year >= inputYear;
+            });
+            addEarthquakesToMap(filteredData); // Actualizamos el mapa con los datos filtrados
+        }
+
+        // Cargar todos los terremotos inicialmente
+        addEarthquakesToMap(earthquakeData);
+    </script>
+</body>
+</html>
