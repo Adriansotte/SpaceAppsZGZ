@@ -7,18 +7,26 @@ import { HomeComponent } from './pages/home/home.component';
 import { HeaderComponent } from './components/header/header.component';
 import { FileUploadModule } from 'primeng/fileupload';
 import { CardModule } from 'primeng/card';
+import { TabMenuModule } from 'primeng/tabmenu';
+import { ChartComponent } from './components/chart/chart.component';
+import { EarthComponent } from './components/earth/earth.component';
+import { ArtificialComponent } from './components/artificial/artificial.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    HeaderComponent
+    HeaderComponent,
+    ChartComponent,
+    EarthComponent,
+    ArtificialComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     CardModule,
-    FileUploadModule
+    FileUploadModule,
+    TabMenuModule
   ],
   providers: [],
   bootstrap: [AppComponent]
