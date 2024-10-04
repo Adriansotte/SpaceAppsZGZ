@@ -1,42 +1,37 @@
 # Importamos las librerías necesarias
 import pandas as pd
 import folium
+from folium.plugins import MarkerCluster
+import json
 
-# Cogemos los Datos
-url = 'back\mapadelmundo\earthquakes.csv'
+# Cargamos los Datos del CSV
+url = r'back\mapadelmundo\database.csv'
 earthquakes = pd.read_csv(url)
 
-# Escogemos solo los datos necesarios
-earthquakes = earthquakes.dropna(subset=['location', 'magnitude','name','year'])
+# Convertimos la columna 'Date' a un formato de fecha adecuado
+earthquakes['Date'] = pd.to_datetime(earthquakes['Date'], format='%d/%m/%Y', errors='coerce')
 
-# Función para limpiar y extraer latitud y longitud de los datos de location
-def extract_coordinates(location):
-    location = location.replace('POINT', '').replace('(', '').replace(')', '')
-    lon, lat = location.split()
-    return float(lon), float(lat)
+# Normalizamos la columna 'Type'
+earthquakes['Type'] = earthquakes['Type'].str.lower().str.strip()
 
-earthquakes['longitude'], earthquakes['latitude'] = zip(*earthquakes['location'].apply(extract_coordinates))
+# Filtramos solo terremotos
+earthquakes = earthquakes[earthquakes['Type'] == 'earthquake']
 
-# Ordenamos los terremotos por magnitud en orden descendente y luego lo limitamos a 500
-earthquakes = earthquakes.sort_values(by='magnitude', ascending=False)
-earthquakes_limited = earthquakes.head(100)
+# Eliminamos filas con datos faltantes
+earthquakes = earthquakes.dropna(subset=['Latitude', 'Longitude', 'Magnitude', 'Date'])
 
-# Muestra en consola de que están las magnitudes
-print(earthquakes_limited[[ 'latitude', 'longitude', 'magnitude', 'name', 'year']].head(10))
+# Filtramos los terremotos con magnitud mayor o igual a 7
+earthquakes = earthquakes[earthquakes['Magnitude'] >= 7]
 
-# Creamos un mapa centrado en el promedio de las coordenadas
-m = folium.Map(location=[earthquakes_limited['latitude'].mean(), earthquakes_limited['longitude'].mean()], zoom_start=2)
+# Creamos el mapa inicial centrado en la media de latitud y longitud
+m = folium.Map(location=[earthquakes['Latitude'].mean(), earthquakes['Longitude'].mean()], zoom_start=2)
 
-# Agregamos marcadores para cada terremoto
-for idx, row in earthquakes_limited.iterrows():
-    folium.Marker(
-        location=[row['latitude'], row['longitude']],
-        popup=f"Magnitude: {row['magnitude']}<br>Year: {row['year']} <br> {row['name']}",
-        icon=folium.Icon(color='red')
-    ).add_to(m)
+# Convertimos la columna 'Date' a string para que sea serializable a JSON
+earthquakes['Date'] = earthquakes['Date'].dt.strftime('%Y-%m-%d')
 
-# Guardamos el mapa como un archivo HTML
-m.save('back\mapadelmundo\mapa_terremotos.html')
+# Guardamos los datos en un archivo JavaScript para que se procesen luego en el HTML
+earthquake_data = earthquakes[['Latitude', 'Longitude', 'Magnitude', 'Date', 'Depth']].to_dict(orient='records')
 
-# Para visualizar el mapa en Jupyter Notebook, puedes usar:
-m
+# Creamos el archivo .js con los datos de terremotos en formato JSON
+with open(r'back\mapadelmundo\earthquake_data.js', 'w') as f:
+    f.write(f"var earthquakeData = {json.dumps(earthquake_data)};")
