@@ -30,7 +30,7 @@ def detect_sismo_api():
     processed_data = process_csv_for_ia(temp_file_path)
 
     # Cargar el modelo entrenado
-    data_file = './back/output/detection_catalog_scaled_mars.csv'
+    data_file = './output/detection_catalog_scaled_mars.csv'
     data = pd.read_csv(data_file)
     X = data.drop(columns=['is_sismo_start', 'time_abs(%Y-%m-%dT%H:%M:%S.%f)'])
     y = data['is_sismo_start']

@@ -7,8 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 import os
 
 # Directorio de salida
-output_directory = './back/output/'
-result_directory = './back/Resultados/'
+output_directory = './output/'
+result_directory = './Resultados/'
 os.makedirs(output_directory, exist_ok=True)
 
 # 1. Procesar un CSV para la IA (archivo de testeo)
@@ -76,7 +76,7 @@ def detect_sismo(model, processed_data, threshold=0.3):
     print(f"Predicciones guardadas en {result_directory}")
 
 # Ejemplo de uso con un arcdhivo CSV de testeo
-csv_file = f'./back/data/lunar/training/data/S12_GradeA/xa.s12.00.mhz.1975-06-26HR00_evid00198.csv'
+csv_file = f'./data/lunar/training/data/S12_GradeA/xa.s12.00.mhz.1975-06-26HR00_evid00198.csv'
 
 # 1. Procesar el CSV de testeo para la IA
 processed_data = process_csv_for_ia(csv_file)
