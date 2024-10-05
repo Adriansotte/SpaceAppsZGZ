@@ -17,6 +17,7 @@ import { MessageService } from 'primeng/api';
 import { SplitterModule } from 'primeng/splitter';   
 import { AccordionModule } from 'primeng/accordion';
 import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FooterComponent } from './components/footer/footer.component';
@@ -43,7 +44,8 @@ import { FooterComponent } from './components/footer/footer.component';
     AccordionModule,
 
     BrowserAnimationsModule,
-    FormsModule
+    FormsModule,
+    ButtonModule
   ],
   providers: [MessageService],
   bootstrap: [AppComponent]
