@@ -11,7 +11,7 @@ output_directory = './output/'
 os.makedirs(output_directory, exist_ok=True)  # Asegúrate de que el directorio exista
 
 # Cargar los datos del catálogo de Marte
-cat_directory = './data/mars/training/catalogs/'
+cat_directory = './back/data/mars/training/catalogs/'
 cat_file = cat_directory + 'Mars_InSight_training_catalog_final.csv'
 cat = pd.read_csv(cat_file)
 
@@ -41,7 +41,7 @@ def process_file(row, file_index):
         print(f"Processing file: {test_filename}")
 
         # Leer los datos del archivo CSV correspondiente
-        data_directory = './data/mars/training/data/'
+        data_directory = './back/data/mars/training/data/'
         csv_file = f'{data_directory}{test_filename}'
 
         # Comprobar si el archivo existe antes de continuar
