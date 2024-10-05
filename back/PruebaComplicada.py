@@ -1,135 +1,123 @@
-import os
 import numpy as np
 import pandas as pd
+from datetime import datetime
 import matplotlib.pyplot as plt
+import os
 from scipy import signal
-from obspy.signal.trigger import classic_sta_lta, trigger_onset
+from obspy.signal.trigger import classic_sta_lta
 from matplotlib import cm
-from datetime import timedelta
-
-# Directorio de salida para las imágenes
-output_directory = './Resultados/'
-os.makedirs(output_directory, exist_ok=True)  # Asegúrate de que el directorio exista
 
 
-def process_and_generate_plots_from_extractor(times_rel, times_abs, data, start_time):
+# Función para extraer datos desde un archivo CSV
+def extract_data_from_csv(csv_file):
     """
-    Procesa los datos sísmicos recibidos y genera imágenes de traza sísmica, función característica,
-    espectrograma y detecciones, guardándolos en un directorio especificado.
-
-    Parameters:
-    times_rel (array): Tiempos relativos extraídos.
-    times_abs (array): Tiempos absolutos extraídos.
-    data (array): Datos de velocidad (m/s).
-    start_time (datetime): Tiempo absoluto de inicio del sismo.
-
-    Returns:
-    str: Directorio donde se guardan las imágenes generadas.
+    Función para extraer datos de un archivo CSV, retornando tiempos relativos, tiempos absolutos y datos de velocidad.
+    :param csv_file: Ruta del archivo CSV
+    :return: (times_rel, times_abs, csv_data) - tiempos relativos, tiempos absolutos, datos de velocidad
     """
+    # Leer el archivo CSV
+    data_cat = pd.read_csv(csv_file)
 
-    csv_file = "output_data"  # Puedes ajustar este nombre según sea necesario
+    # Extraer tiempos relativos y datos de velocidad
+    csv_times = np.array(data_cat['time_rel(sec)'].tolist())
+    csv_data = np.array(data_cat['velocity(m/s)'].tolist())
 
-    # Asegurarse de que arrival_time_rel está dentro de los límites de times_rel
-    arrival_time_rel = times_rel[0]  # O ajustar el valor adecuado para la llegada del sismo
-    if not (min(times_rel) <= arrival_time_rel <= max(times_rel)):
-        print(f"arrival_time_rel ({arrival_time_rel}) fuera del rango de times_rel.")
-        arrival_time_rel = np.median(times_rel)  # Definir a un valor dentro del rango como solución temporal
+    # Convertir tiempo absoluto de cadena a formato datetime
+    csv_times_dt = [datetime.strptime(val, '%Y-%m-%dT%H:%M:%S.%f') for val in
+                    data_cat['time_abs(%Y-%m-%dT%H:%M:%S.%f)'].values]
 
-    # Plot de la traza sísmica relativa y guarda imagen
+    return csv_times, csv_times_dt, csv_data
+
+
+# Procesar los datos de un archivo CSV específico y generar gráficos
+def process_seismic_data_from_csv(csv_file):
+    """
+    Procesa datos sísmicos desde un archivo CSV y genera gráficos.
+    :param csv_file: Ruta al archivo CSV
+    :return: Ruta relativa donde se guardaron las imágenes
+    """
+    # Extraer los datos del archivo CSV
+    csv_times, csv_times_dt, csv_data = extract_data_from_csv(csv_file)
+
+    # Obtener el nombre base del archivo CSV (sin la extensión)
+    base_name = os.path.splitext(os.path.basename(csv_file))[0]
+
+    # Ruta base de salida para las imágenes (ruta absoluta)
+    base_output_directory = os.path.abspath(
+        '../front/seismic/src/assets/'
+    )
+
+    # Crear un directorio con el nombre del archivo CSV dentro de la ruta de salida
+    output_directory = os.path.join(base_output_directory, base_name)
+    os.makedirs(output_directory, exist_ok=True)  # Asegúrate de que el directorio exista
+
+    # Normalizar la ruta para que los separadores sean consistentes
+    output_directory = os.path.normpath(output_directory)
+
+    # Graficar la traza sísmica relativa
     fig, ax = plt.subplots(1, 1, figsize=(10, 3))
-    ax.plot(times_rel, data)
-    ax.set_xlim([min(times_rel), max(times_rel)])
+    ax.plot(csv_times, csv_data)
+    ax.set_xlim([min(csv_times), max(csv_times)])
     ax.set_ylabel('Velocity (m/s)')
     ax.set_xlabel('Time (s)')
-    ax.set_title(f'{csv_file}', fontweight='bold')
+    ax.set_title(f'{os.path.basename(csv_file)} - Seismic Trace Relative')
 
-    # Dibujar la línea roja en arrival_time_rel si está dentro del rango
-    ax.axvline(x=arrival_time_rel, c='red', label='Rel. Arrival')
-    ax.legend()
+    # Guardar la imagen de la traza sísmica relativa
+    plt.savefig(os.path.join(output_directory, f'{base_name}_seismic_trace_rel.png'))
+    plt.close()  # Cerrar la figura para evitar duplicados
 
-    plt.savefig(f'{output_directory}{csv_file}_seismic_trace_rel.png')
-
-    # Plot de la traza en tiempo absoluto y guarda imagen
+    # Graficar la traza sísmica absoluta
     fig, ax = plt.subplots(1, 1, figsize=(10, 3))
-    ax.plot(times_abs, data)
-    ax.set_xlim([min(times_abs), max(times_abs)])
+    ax.plot(csv_times_dt, csv_data)
+    ax.set_xlim((min(csv_times_dt), max(csv_times_dt)))
     ax.set_ylabel('Velocity (m/s)')
     ax.set_xlabel('Time (month-day hour)')
-    ax.set_title(f'{csv_file}', fontweight='bold')
+    ax.set_title(f'{os.path.basename(csv_file)} - Seismic Trace Absolute')
 
-    if start_time >= min(times_abs) and start_time <= max(times_abs):
-        ax.axvline(x=start_time, c='red', label='Abs. Arrival')
-        ax.legend()
+    # Guardar la imagen de la traza sísmica absoluta
+    plt.savefig(os.path.join(output_directory, f'{base_name}_seismic_trace_abs.png'))
+    plt.close()  # Cerrar la figura para evitar duplicados
 
-    plt.savefig(f'{output_directory}{csv_file}_seismic_trace_abs.png')
-
-    # Aplicar un filtro de paso de banda (simulado)
-    filtered_data = data  # Línea de filtro dummy, podrías aplicar un filtro real aquí
-
-    # Generar un espectrograma y guardar imagen
-    f, t, sxx = signal.spectrogram(filtered_data, fs=1.0 / (times_rel[1] - times_rel[0]))
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
-
-    # Serie temporal
-    ax1.plot(times_rel, filtered_data)
-    ax1.axvline(x=arrival_time_rel, color='red', label='Detection')
-    ax1.set_xlim([min(times_rel), max(times_rel)])
-    ax1.set_ylabel('Velocity (m/s)')
-    ax1.set_xlabel('Time (s)')
-    ax1.legend()
+    # Aplicar filtro de paso de banda (opcional)
+    filtered_data = csv_data  # Simulación de filtro, puedes aplicar uno real aquí
 
     # Espectrograma
-    vals = ax2.pcolormesh(t, f, sxx, cmap=cm.jet, vmax=5e-17)
-    ax2.set_xlim([min(times_rel), max(times_rel)])
-    ax2.set_xlabel('Time (Day Hour:Minute)', fontweight='bold')
-    ax2.set_ylabel('Frequency (Hz)', fontweight='bold')
-    ax2.axvline(x=arrival_time_rel, c='red')
-    plt.colorbar(vals, ax=ax2, orientation='horizontal').set_label('Power ((m/s)^2/sqrt(Hz))', fontweight='bold')
+    f, t, sxx = signal.spectrogram(filtered_data, fs=1.0 / (csv_times[1] - csv_times[0]))
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+    ax1.plot(csv_times, filtered_data)
+    ax1.set_xlim([min(csv_times), max(csv_times)])
+    ax1.set_ylabel('Velocity (m/s)')
+    ax1.set_xlabel('Time (s)')
+    ax2.pcolormesh(t, f, sxx, cmap=cm.jet, shading='auto')
+    ax2.set_xlim([min(csv_times), max(csv_times)])
+    ax2.set_xlabel('Time (s)')
+    ax2.set_ylabel('Frequency (Hz)')
+    plt.colorbar(ax2.pcolormesh(t, f, sxx, cmap=cm.jet), ax=ax2, orientation='horizontal').set_label(
+        'Power ((m/s)^2/sqrt(Hz))')
 
-    plt.savefig(f'{output_directory}{csv_file}_spectrogram.png')
+    # Guardar la imagen del espectrograma
+    plt.savefig(os.path.join(output_directory, f'{base_name}_spectrogram.png'))
+    plt.close()  # Cerrar la figura para evitar duplicados
 
-    # Calcular STA/LTA y guardar la función característica
+    # Calcular STA/LTA
     sta_len = 30
     lta_len = 150
-    cft = classic_sta_lta(data, int(sta_len * (1 / (times_rel[1] - times_rel[0]))),
-                          int(lta_len * (1 / (times_rel[1] - times_rel[0]))))
-    cft /= np.max(cft)  # Normaliza la función característica
-    fig, ax = plt.subplots(1, 1, figsize=(12, 3))
-    ax.plot(times_rel, cft)
-    ax.set_xlim([min(times_rel), max(times_rel)])
+    cft = classic_sta_lta(csv_data, int(sta_len * (1 / (csv_times[1] - csv_times[0]))),
+                          int(lta_len * (1 / (csv_times[1] - csv_times[0]))))
+
+    # Normalizar la función característica
+    cft = cft / np.max(cft)
+    fig, ax = plt.subplots(1, 1, figsize=(10, 3))
+    ax.plot(csv_times, cft)
+    ax.set_xlim([min(csv_times), max(csv_times)])
     ax.set_ylim([0, 10])
+    ax.set_ylabel('Characteristic Function')
     ax.set_xlabel('Time (s)')
-    ax.set_ylabel('Characteristic function')
-    plt.savefig(f'{output_directory}{csv_file}_characteristic_function.png')
+    plt.savefig(os.path.join(output_directory, f'{base_name}_sta_lta.png'))
+    plt.close()  # Cerrar la figura para evitar duplicados
 
-    # Aplicar umbral de detección
-    thr_on = 4
-    thr_off = 1.5
-    on_off = np.array(trigger_onset(cft, thr_on, thr_off))
+    print(f"Procesamiento completo para {os.path.basename(csv_file)}.")
 
-    if len(on_off) == 0:
-        print(f"No triggers found for {csv_file}")
-        return output_directory
-
-    # Plotear las detecciones y guardar la imagen
-    fig, ax = plt.subplots(1, 1, figsize=(12, 3))
-    for i, triggers in enumerate(on_off):
-        ax.axvline(x=times_rel[triggers[0]], color='red', label=f'Trig. On {i + 1}')
-        ax.axvline(x=times_rel[triggers[1]], color='purple', label=f'Trig. Off {i + 1}')
-    ax.plot(times_rel, data)
-    ax.set_xlim([min(times_rel), max(times_rel)])
-    ax.legend()
-    plt.savefig(f'{output_directory}{csv_file}_triggers.png')
-
-    # Generar catálogo de detecciones y guardarlo en CSV
-    detection_times = []
-    for i, triggers in enumerate(on_off):
-        on_time = times_rel[triggers[0]] + arrival_time_rel
-        detection_times.append((start_time + timedelta(seconds=on_time)).strftime('%Y-%m-%dT%H:%M:%S.%f'))
-
-    detect_df = pd.DataFrame({'filename': csv_file,
-                              'time_abs(%Y-%m-%dT%H:%M:%S.%f)': detection_times,
-                              'time_rel(sec)': times_rel[on_off[:, 0]]})
-    detect_df.to_csv(f'{output_directory}detection_catalog_{csv_file}.csv', index=False)
-
-    return output_directory
+    # Devolver la ruta relativa donde se guardaron las imágenes
+    relative_output_directory = os.path.relpath(output_directory)
+    return relative_output_directory
