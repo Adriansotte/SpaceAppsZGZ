@@ -76,10 +76,18 @@ def detect_sismo(model, processed_data, threshold=0.3):
     print(f"Predicciones guardadas en {result_directory}")
 
 # Ejemplo de uso con un archivo CSV de testeo
-csv_file = './data/lunar/training/data/S12_GradeA/xa.s12.00.mhz.1975-06-26HR00_evid00198.csv'
+# csv_file = './data/lunar/training/data/S12_GradeA/xa.s12.00.mhz.1975-06-26HR00_evid00198.csv'
 
 # 1. Procesar el CSV de testeo para la IA
-processed_data = process_csv_for_ia(csv_file)
+# processed_data = process_csv_for_ia(csv_file)
+
+# 3. Predecir si hay sismo en el nuevo archivo de testeo con umbral ajustado
+# detect_sismo(model, processed_data, threshold=0.3)
+
+def identificarSismoONoSismo(csv_file):
+    processed_data = process_csv_for_ia(csv_file)
+    detect_sismo(model, processed_data, threshold=0.3)
+
 
 # 2. Entrenar el modelo (o cargar uno entrenado)
 data_file = './output/detection_catalog_scaled_mars.csv'
@@ -96,5 +104,5 @@ model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 model.fit(X_train, y_train)
 
-# 3. Predecir si hay sismo en el nuevo archivo de testeo con umbral ajustado
-detect_sismo(model, processed_data, threshold=0.3)
+# csv_file = './data/lunar/training/data/S12_GradeA/xa.s12.00.mhz.1975-06-26HR00_evid00198.csv'
+# identificarSismoONoSismo(csv_file)
