@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { FileUploadEvent } from 'primeng/fileupload';
+import { UploadCsvService } from 'src/app/services/upload/upload-csv.service';
 
 @Component({
   selector: 'app-chart',
@@ -10,7 +11,10 @@ import { FileUploadEvent } from 'primeng/fileupload';
 export class ChartComponent {
   uploadedFiles: File[] = [];
 
-  constructor(private messageService: MessageService) { }
+  constructor(
+    private messageService: MessageService,
+    private uploadCsvService: UploadCsvService // Cambié la 'U' a minúscula para seguir la convención
+  ) { }
 
   onUpload(event: FileUploadEvent) {
     // Filtrar archivos que no sean CSV
@@ -21,11 +25,18 @@ export class ChartComponent {
       return; // No se permite subir archivos que no sean CSV
     }
 
+    // Subir archivos válidos
     for (let file of validFiles) {
       this.uploadedFiles.push(file);
+      this.uploadCsvService.uploadFile(file).subscribe(
+        response => {
+          this.messageService.add({ severity: 'info', summary: 'File Uploaded', detail: response.message || 'Upload successful!' });
+        },
+        error => {
+          this.messageService.add({ severity: 'error', summary: 'Upload Failed', detail: error.error?.message || 'An error occurred during upload.' });
+        }
+      );
     }
-
-    this.messageService.add({ severity: 'info', summary: 'File Uploaded', detail: '' });
   }
 
   formatSize(bytes: number): string {
