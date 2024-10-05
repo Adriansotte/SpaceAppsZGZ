@@ -1,9 +1,61 @@
-<p-fileUpload 
-    mode="basic" 
-    chooseLabel="Choose" 
-    chooseIcon="pi pi-upload" 
-    name="demo[]" 
-    url="https://www.primefaces.org/cdn/api/upload.php" 
-    accept="image/*" 
-    [maxFileSize]="1000000">
-</p-fileUpload>
+<div class="flex min-h-screen bg-gray-900 relative">
+    <!-- Imagen de fondo -->
+    <div class="absolute inset-0 overflow-hidden">
+        <img src="assets/backgroundIMG/home_background.jpg" alt="Imagen de fondo" class="w-full h-full object-cover" />
+    </div>
+
+    <!-- Contenedor del acordeón -->
+    <div class="w-full md:w-1/2 flex justify-center items-center relative z-10 p-4">
+        <div class="w-full max-w-lg p-8 bg-white bg-opacity-90 shadow-lg rounded-lg">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Detección de seismos</h2>
+            <p-accordion [activeIndex]="0" class="w-full">
+                <p-accordionTab header="Evalúa tu archivo">
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed consequuntur error
+                        repudiandae numquam deserunt quisquam repellat libero asperiores earum nam nobis, culpa ratione
+                        quam perferendis esse, cupiditate neque quas!
+                    </p>
+                </p-accordionTab>
+                <p-accordionTab header="Seismos en la tierra">
+                    <p>
+                        Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
+                        laudantium.
+                    </p>
+                </p-accordionTab>
+                <p-accordionTab header="Detección de seismos">
+                    <p>
+                        At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium
+                        voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati
+                        cupiditate non provident.
+                    </p>
+                </p-accordionTab>
+            </p-accordion>
+        </div>
+    </div>
+</div>
+<footer class="bg-gray-800 text-white py-8">
+    <div class="container mx-auto text-center">
+        <p class="mb-4">© 2024 Seismic Detection. Todos los derechos reservados.</p>
+        <div class="border-t border-gray-600 my-4"></div> <!-- Separador -->
+        <div class="flex justify-center space-x-4 mb-4">
+            <p-button label="Inicio" styleClass="p-button-link hover:underline" routerLink="/"></p-button>
+            <p-button label="Acerca de" styleClass="p-button-link hover:underline" routerLink="/about"></p-button>
+            <p-button label="Servicios" styleClass="p-button-link hover:underline" routerLink="/services"></p-button>
+            <p-button label="Contacto" styleClass="p-button-link hover:underline" routerLink="/contact"></p-button>
+        </div>
+        <div class="flex justify-center space-x-6 mt-4">
+            <a href="#" class="text-gray-400 hover:text-white transition duration-200">
+                <i class="fab fa-facebook-f"></i> <!-- Icono de Facebook -->
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition duration-200">
+                <i class="fab fa-twitter"></i> <!-- Icono de Twitter -->
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition duration-200">
+                <i class="fab fa-linkedin-in"></i> <!-- Icono de LinkedIn -->
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition duration-200">
+                <i class="fab fa-instagram"></i> <!-- Icono de Instagram -->
+            </a>
+        </div>
+    </div>
+</footer>
