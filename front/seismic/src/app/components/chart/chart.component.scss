@@ -1,0 +1,14 @@
+.image-card {
+    padding: 16px; /* Relleno de 16px */
+    margin-bottom: 16px; /* Margen inferior de 16px */
+    background-color: white; /* Color de fondo blanco */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra */
+    overflow: hidden; /* Oculta el desbordamiento */
+}
+
+.image-card img {
+    width: 100%;
+    height: auto; /* Mantiene la proporción */
+    object-fit: cover; /* Asegura que la imagen llene el contenedor */
+}

@@ -21,6 +21,8 @@ import { ButtonModule } from 'primeng/button';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FooterComponent } from './components/footer/footer.component';
+import { GalleriaModule } from 'primeng/galleria';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @NgModule({
   declarations: [
@@ -45,7 +47,9 @@ import { FooterComponent } from './components/footer/footer.component';
 
     BrowserAnimationsModule,
     FormsModule,
-    ButtonModule
+    ButtonModule,
+    GalleriaModule,
+    ProgressSpinnerModule
   ],
   providers: [MessageService],
   bootstrap: [AppComponent]

@@ -6,14 +6,16 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class UploadCsvService {
-  private apiUrl = 'http://localhost:5000/upload'; // Cambia esto a tu URL de backend
+  // Cambiar la URL a tu endpoint correcto
+  private apiUrl = 'http://localhost:5000/detect_sismo';
 
   constructor(private http: HttpClient) { }
 
   uploadFile(file: File): Observable<any> {
     const formData: FormData = new FormData();
     formData.append('file', file, file.name);
-    console.log(formData)
+
+    // No establezcas el Content-Type manualmente
     return this.http.post(this.apiUrl, formData, {
       headers: new HttpHeaders({
         // 'Content-Type': 'multipart/form-data' // Este encabezado no se debe establecer manualmente

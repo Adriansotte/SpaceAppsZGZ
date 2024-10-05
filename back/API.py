@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify
 import os
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
-from IaMarte import process_csv_for_ia, detect_sismo
+from IaMarte import process_csv_for_ia
+from flask_cors import CORS
+from PruebaComplicada import process_seismic_data_from_csv
 
 app = Flask(__name__)
+
+# Habilitar CORS para todas las rutas
+CORS(app)
 
 # Directorios de salida
 output_directory = './output/'
@@ -16,6 +17,8 @@ os.makedirs(result_directory, exist_ok=True)
 
 @app.route('/detect_sismo', methods=['POST'])
 def detect_sismo_api():
+    print("entra")
+    
     # Verificar si se subió un archivo
     if 'file' not in request.files:
         return jsonify({'error': 'No se ha subido ningún archivo'}), 400
@@ -28,28 +31,23 @@ def detect_sismo_api():
 
     # Procesar el archivo CSV
     processed_data = process_csv_for_ia(temp_file_path)
+    print(processed_data)
 
-    # Cargar el modelo entrenado
-    data_file = './output/detection_catalog_scaled_mars.csv'
-    data = pd.read_csv(data_file)
-    X = data.drop(columns=['is_sismo_start', 'time_abs(%Y-%m-%dT%H:%M:%S.%f)'])
-    y = data['is_sismo_start']
+    # Procesar los datos sísmicos y obtener el directorio y las rutas de las imágenes
+    processed_data_path, image_paths = process_seismic_data_from_csv(temp_file_path)
+    print(f"Processed data path: {processed_data_path}")
+    print(f"Image paths: {image_paths}")
 
-    # Escalar y entrenar el modelo
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-    model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
-    model.fit(X_train, y_train)
-
-    # Detectar sismos y devolver resultados
-    processed_data = detect_sismo(model, processed_data, threshold=0.3)
-    
-    # Guardar resultados en CSV
-    output_file = os.path.join(result_directory, 'predictions.csv')
-    processed_data.to_csv(output_file, index=False)
-
-    return jsonify({'message': 'Predicciones realizadas', 'output_file': output_file})
+    # Asegúrate de que processed_data_path no es None o vacío
+    if processed_data_path is not None:
+        # Retornar la ruta procesada y la lista de imágenes
+        return jsonify({
+            'message': 'Archivo procesado con éxito',
+            'processed_data_path': processed_data_path,
+            'image_paths': image_paths 
+        }), 200
+    else:
+        return jsonify({'error': 'Error en el procesamiento de datos'}), 500  # Código 500 para errores internos
 
 if __name__ == '__main__':
     app.run(debug=True)

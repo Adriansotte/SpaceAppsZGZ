@@ -34,7 +34,7 @@ def process_seismic_data_from_csv(csv_file):
     """
     Procesa datos sísmicos desde un archivo CSV y genera gráficos.
     :param csv_file: Ruta al archivo CSV
-    :return: Ruta relativa donde se guardaron las imágenes
+    :return: (relative_output_directory, image_paths) Ruta relativa donde se guardaron las imágenes, lista de rutas de las imágenes
     """
     # Extraer los datos del archivo CSV
     csv_times, csv_times_dt, csv_data = extract_data_from_csv(csv_file)
@@ -54,6 +54,9 @@ def process_seismic_data_from_csv(csv_file):
     # Normalizar la ruta para que los separadores sean consistentes
     output_directory = os.path.normpath(output_directory)
 
+    # Lista de rutas para las imágenes generadas
+    image_paths = []
+
     # Graficar la traza sísmica relativa
     fig, ax = plt.subplots(1, 1, figsize=(10, 3))
     ax.plot(csv_times, csv_data)
@@ -63,7 +66,9 @@ def process_seismic_data_from_csv(csv_file):
     ax.set_title(f'{os.path.basename(csv_file)} - Seismic Trace Relative')
 
     # Guardar la imagen de la traza sísmica relativa
+    relative_path_rel = os.path.join(base_name, f'{base_name}_seismic_trace_rel.png')
     plt.savefig(os.path.join(output_directory, f'{base_name}_seismic_trace_rel.png'))
+    image_paths.append(relative_path_rel)
     plt.close()  # Cerrar la figura para evitar duplicados
 
     # Graficar la traza sísmica absoluta
@@ -75,7 +80,9 @@ def process_seismic_data_from_csv(csv_file):
     ax.set_title(f'{os.path.basename(csv_file)} - Seismic Trace Absolute')
 
     # Guardar la imagen de la traza sísmica absoluta
+    relative_path_abs = os.path.join(base_name, f'{base_name}_seismic_trace_abs.png')
     plt.savefig(os.path.join(output_directory, f'{base_name}_seismic_trace_abs.png'))
+    image_paths.append(relative_path_abs)
     plt.close()  # Cerrar la figura para evitar duplicados
 
     # Aplicar filtro de paso de banda (opcional)
@@ -96,7 +103,9 @@ def process_seismic_data_from_csv(csv_file):
         'Power ((m/s)^2/sqrt(Hz))')
 
     # Guardar la imagen del espectrograma
+    relative_path_spectrogram = os.path.join(base_name, f'{base_name}_spectrogram.png')
     plt.savefig(os.path.join(output_directory, f'{base_name}_spectrogram.png'))
+    image_paths.append(relative_path_spectrogram)
     plt.close()  # Cerrar la figura para evitar duplicados
 
     # Calcular STA/LTA
@@ -113,11 +122,13 @@ def process_seismic_data_from_csv(csv_file):
     ax.set_ylim([0, 10])
     ax.set_ylabel('Characteristic Function')
     ax.set_xlabel('Time (s)')
+    relative_path_sta_lta = os.path.join(base_name, f'{base_name}_sta_lta.png')
     plt.savefig(os.path.join(output_directory, f'{base_name}_sta_lta.png'))
+    image_paths.append(relative_path_sta_lta)
     plt.close()  # Cerrar la figura para evitar duplicados
 
     print(f"Procesamiento completo para {os.path.basename(csv_file)}.")
 
-    # Devolver la ruta relativa donde se guardaron las imágenes
+    # Devolver la ruta relativa y la lista de rutas de las imágenes
     relative_output_directory = os.path.relpath(output_directory)
-    return relative_output_directory
+    return relative_output_directory, image_paths
