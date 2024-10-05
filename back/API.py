@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 import os
-from IaMarte import process_csv_for_ia
+from IaMarte import process_csv_for_ia, identificarSismoONoSismo
 from flask_cors import CORS
 from PruebaComplicada import process_seismic_data_from_csv
 
@@ -48,6 +48,28 @@ def detect_sismo_api():
         }), 200
     else:
         return jsonify({'error': 'Error en el procesamiento de datos'}), 500  # Código 500 para errores internos
+
+
+@app.route('/iaMarte', methods=['POST'])
+def detect_sismo_api_ia():
+    print("entra")
+
+    # Verificar si se subió un archivo
+    if 'file' not in request.files:
+        return jsonify({'error': 'No se ha subido ningún archivo'}), 400
+
+    file = request.files['file']
+
+    # Guardar archivo CSV temporalmente
+    temp_file_path = os.path.join(output_directory, file.filename)
+    file.save(temp_file_path)
+
+    # Procesar el archivo CSV
+    processed_data = identificarSismoONoSismo(temp_file_path)
+    print(processed_data)
+
+    return processed_data
+
 
 if __name__ == '__main__':
     app.run(debug=True)
