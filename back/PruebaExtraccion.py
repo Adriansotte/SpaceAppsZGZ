@@ -1,11 +1,8 @@
 from back import DataExtractor
-from back.PruebaComplicada import process_and_generate_plots_from_extractor
+from back.DataExtractor import extract_data
+from back.PruebaComplicada import process_seismic_data_from_csv
 
-# Extraer los datos sísmicos del archivo
-times_rel, times_abs, data, start_time = DataExtractor.extract_data('xa.s12.00.mhz.1970-01-19HR00_evid00002.csv',
-                                                                    'data/lunar/training/data/S12_GradeA/')
-
-# Generar las imágenes usando los datos extraídos
-output_directory = process_and_generate_plots_from_extractor(times_rel, times_abs, data, start_time)
-
-
+# Ejemplo de uso
+csv_file_path = './data/lunar/training/data/S12_GradeA/xa.s12.00.mhz.1975-06-26HR00_evid00198.csv'
+output_directory = process_seismic_data_from_csv(csv_file_path)
+print(f"Imágenes guardadas en: {output_directory}")
