@@ -5,3 +5,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+    margin: 0;          /* Elimina el margen del documento */
+    padding: 0;         /* Elimina el padding del documento */
+    height: 100%;       /* Asegura que el body ocupe toda la altura de la ventana */
+    width: 100%;        /* Asegura que el body ocupe toda la anchura de la ventana */
+}
+

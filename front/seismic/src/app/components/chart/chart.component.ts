@@ -11,6 +11,7 @@ import { UploadCsvService } from 'src/app/services/upload/upload-csv.service';
 export class ChartComponent {
   uploadedFiles: File[] = [];
   imagePaths: string[] = [];  // Aquí almacenaremos las rutas de las imágenes
+  loading: boolean = false; // Nuevo estado para controlar el spinner
 
   constructor(
     private messageService: MessageService,
@@ -25,6 +26,8 @@ export class ChartComponent {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Please upload only CSV files.' });
       return; // No se permite subir archivos que no sean CSV
     }
+
+    this.loading = true; // Activar el spinner
 
     // Subir archivos válidos
     validFiles.forEach(file => {
@@ -50,6 +53,9 @@ export class ChartComponent {
         },
         error => {
           this.messageService.add({ severity: 'error', summary: 'Upload Failed', detail: error.error?.message || 'An error occurred during upload.' });
+        },
+        () => {
+          this.loading = false; // Desactivar el spinner después de completar la carga
         }
       );
     });
