@@ -14,6 +14,10 @@ import { ChartComponent } from './components/chart/chart.component';
 import { EarthComponent } from './components/earth/earth.component';
 import { ArtificialComponent } from './components/artificial/artificial.component';
 import { MessageService } from 'primeng/api';
+import { SplitterModule } from 'primeng/splitter';   
+import { AccordionModule } from 'primeng/accordion';
+
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -31,7 +35,11 @@ import { MessageService } from 'primeng/api';
     FileUploadModule,
     TabMenuModule,
     ToastModule,
-    BadgeModule
+    BadgeModule,
+    SplitterModule,
+    AccordionModule,
+
+    BrowserAnimationsModule
   ],
   providers: [MessageService],
   bootstrap: [AppComponent]
