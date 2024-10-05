@@ -1,10 +1,10 @@
-<div class="flex flex-col items-center justify-start min-h-screen space-y-4 pt-4">
+<div class="flex flex-col items-center justify-start min-h-screen space-y-4 pt-4 bg-gray-100">
     <div class="max-w-md w-1/2 text-center">
         <h1 class="text-2xl font-bold text-gray-700 mb-4">
             Inserta tu archivo CSV aquí
         </h1>
         <p-fileUpload name="demo[]" url="https://www.primefaces.org/cdn/api/upload.php" (onUpload)="onUpload($event)"
-            [multiple]="true" accept=".csv" [maxFileSize]="1000000">
+            [multiple]="true" accept=".csv" [maxFileSize]="100000000"> <!-- Cambié el tamaño máximo a 100MB -->
             <ng-template pTemplate="content">
                 <ul *ngIf="uploadedFiles.length">
                     <li *ngFor="let file of uploadedFiles">
@@ -13,5 +13,14 @@
                 </ul>
             </ng-template>
         </p-fileUpload>
+    </div>
+
+    <!-- Sección para mostrar imágenes generadas -->
+    <div *ngIf="imagePaths.length > 0" class="mt-6 w-full max-w-md">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Imágenes Generadas</h2>
+        <div class="flex flex-col space-y-4">
+            <img *ngFor="let imagePath of imagePaths" [src]="imagePath" alt="Seismic Image"
+                class="w-full h-auto rounded-lg shadow-md" />
+        </div>
     </div>
 </div>

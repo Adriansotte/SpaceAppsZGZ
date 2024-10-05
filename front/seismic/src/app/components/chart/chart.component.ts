@@ -10,10 +10,11 @@ import { UploadCsvService } from 'src/app/services/upload/upload-csv.service';
 })
 export class ChartComponent {
   uploadedFiles: File[] = [];
+  imagePaths: string[] = [];  // Aquí almacenaremos las rutas de las imágenes
 
   constructor(
     private messageService: MessageService,
-    private uploadCsvService: UploadCsvService // Cambié la 'U' a minúscula para seguir la convención
+    private uploadCsvService: UploadCsvService
   ) { }
 
   onUpload(event: FileUploadEvent) {
@@ -26,17 +27,32 @@ export class ChartComponent {
     }
 
     // Subir archivos válidos
-    for (let file of validFiles) {
-      this.uploadedFiles.push(file);
+    validFiles.forEach(file => {
       this.uploadCsvService.uploadFile(file).subscribe(
         response => {
-          this.messageService.add({ severity: 'info', summary: 'File Uploaded', detail: response.message || 'Upload successful!' });
+          // Almacena el archivo subido en el array de archivos subidos
+          this.uploadedFiles.push(file);
+
+          // Manejar la respuesta del servidor
+          if (response.message) {
+            this.messageService.add({ severity: 'info', summary: 'File Uploaded', detail: response.message });
+          } else {
+            this.messageService.add({ severity: 'info', summary: 'File Uploaded', detail: 'Upload successful!' });
+          }
+
+          // Recoger la lista de imágenes desde la respuesta
+          if (response.image_paths) {
+            this.imagePaths = response.image_paths.map((path: string) => {
+              return `/assets/${path}`;  // Construir la ruta completa de las imágenes
+            });
+            console.log('Image Paths:', this.imagePaths);
+          }
         },
         error => {
           this.messageService.add({ severity: 'error', summary: 'Upload Failed', detail: error.error?.message || 'An error occurred during upload.' });
         }
       );
-    }
+    });
   }
 
   formatSize(bytes: number): string {
