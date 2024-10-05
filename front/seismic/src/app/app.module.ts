@@ -21,6 +21,7 @@ import { ButtonModule } from 'primeng/button';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FooterComponent } from './components/footer/footer.component';
+import { GalleriaModule } from 'primeng/galleria';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { FooterComponent } from './components/footer/footer.component';
 
     BrowserAnimationsModule,
     FormsModule,
-    ButtonModule
+    ButtonModule,
+    GalleriaModule
   ],
   providers: [MessageService],
   bootstrap: [AppComponent]
