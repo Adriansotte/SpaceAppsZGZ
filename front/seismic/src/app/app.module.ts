@@ -16,8 +16,10 @@ import { ArtificialComponent } from './components/artificial/artificial.componen
 import { MessageService } from 'primeng/api';
 import { SplitterModule } from 'primeng/splitter';   
 import { AccordionModule } from 'primeng/accordion';
+import { FormsModule } from '@angular/forms';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { FooterComponent } from './components/footer/footer.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +28,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     HeaderComponent,
     ChartComponent,
     EarthComponent,
-    ArtificialComponent
+    ArtificialComponent,
+    FooterComponent
   ],
   imports: [
     BrowserModule,
@@ -39,7 +42,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     SplitterModule,
     AccordionModule,
 
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    FormsModule
   ],
   providers: [MessageService],
   bootstrap: [AppComponent]
